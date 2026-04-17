@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حاسبة معاش الوفاة - صندوق الحماية الاجتماعية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a3a5c;
+    --accent: #c8942a;
+    --accent2: #2e7d63;
+    --bg: #f5f0e8;
+    --card: #fffdf8;
+    --text: #1c1c1c;
+    --muted: #6b6254;
+    --border: #d6cfc0;
+    --result-bg: #1a3a5c;
+    --gold: #c8942a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 10% 20%, rgba(200,148,42,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(26,58,92,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Geometric pattern overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(200,148,42,0.03) 40px, rgba(200,148,42,0.03) 41px),
+      repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(26,58,92,0.03) 40px, rgba(26,58,92,0.03) 41px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+    animation: fadeDown 0.7s ease both;
+  }
+
+  .header-badge {
+    display: inline-block;
+    background: var(--primary);
+    color: var(--gold);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .header h1 span {
+    color: var(--gold);
+  }
+
+  .header p {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* Ornament */
+  .ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .ornament-line {
+    flex: 1;
+    max-width: 80px;
+    height: 1px;
+    background: linear-gradient(to left, transparent, var(--gold));
+  }
+  .ornament-line:last-child {
+    background: linear-gradient(to right, transparent, var(--gold));
+  }
+  .ornament-diamond {
+    width: 8px;
+    height: 8px;
+    background: var(--gold);
+    transform: rotate(45deg);
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 24px rgba(26,58,92,0.07);
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 18px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+
+  /* Input group */
+  .input-group {
+    margin-bottom: 24px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+
+  .input-group label span {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-right: 6px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-wrap input {
+    width: 100%;
+    padding: 14px 48px 14px 20px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    direction: ltr;
+    text-align: right;
+  }
+
+  .input-wrap input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(200,148,42,0.12);
+  }
+
+  .input-unit {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    pointer-events: none;
+  }
+
+  /* Stepper for beneficiaries */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .stepper:focus-within {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(200,148,42,0.12);
+  }
+
+  .stepper button {
+    width: 52px;
+    height: 52px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--primary);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .stepper button:hover { background: rgba(200,148,42,0.1); color: var(--gold); }
+
+  .stepper input {
+    flex: 1;
+    text-align: center;
+    border: none;
+    background: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--primary);
+    outline: none;
+    min-width: 0;
+    padding: 0;
+  }
+
+  /* Percentage badge */
+  .pct-preview {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+  }
+
+  .pct-badge {
+    background: var(--primary);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .pct-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Tajawal', sans-serif;
+  }
+
+  /* Calculate button */
+  .calc-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .calc-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 50%, rgba(200,148,42,0.15));
+  }
+
+  .calc-btn:hover {
+    background: #0f2640;
+    box-shadow: 0 8px 24px rgba(26,58,92,0.3);
+    transform: translateY(-1px);
+  }
+
+  .calc-btn:active { transform: translateY(0); }
+
+  .calc-btn .btn-icon { font-size: 20px; }
+
+  /* Results */
+  .results {
+    display: none;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .results.visible { display: block; }
+
+  .result-header {
+    background: var(--primary);
+    border-radius: 12px 12px 0 0;
+    padding: 24px 28px;
+    color: #fff;
+  }
+
+  .result-header-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .result-header-sub {
+    font-size: 14px;
+    color: var(--gold);
+    font-family: 'Tajawal', sans-serif;
+  }
+
+  .result-body {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 8px 0;
+    box-shadow: 0 8px 32px rgba(26,58,92,0.1);
+  }
+
+  .result-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid rgba(214,207,192,0.5);
+    transition: background 0.15s;
+  }
+
+  .result-row:last-child { border-bottom: none; }
+  .result-row:hover { background: rgba(200,148,42,0.04); }
+
+  .result-row-label {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'Tajawal', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .result-row-label .icon {
+    width: 28px;
+    height: 28px;
+    background: var(--bg);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .result-row-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    direction: ltr;
+  }
+
+  .result-row-value .unit {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+
+  .result-row.highlight {
+    background: linear-gradient(135deg, rgba(26,58,92,0.04), rgba(200,148,42,0.06));
+  }
+
+  .result-row.highlight .result-row-value {
+    font-size: 22px;
+    color: var(--accent2);
+  }
+
+  .result-row.grand-total {
+    background: var(--primary);
+    border-radius: 0 0 11px 11px;
+    margin-top: 0;
+  }
+
+  .result-row.grand-total .result-row-label {
+    color: rgba(255,255,255,0.8);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .result-row.grand-total .result-row-label .icon {
+    background: rgba(255,255,255,0.15);
+  }
+
+  .result-row.grand-total .result-row-value {
+    font-size: 26px;
+    color: var(--gold);
+  }
+
+  /* Min wage notice */
+  .min-notice {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(46,125,99,0.08);
+    border: 1px solid rgba(46,125,99,0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin: 12px 28px;
+    font-size: 12px;
+    color: var(--accent2);
+    font-family: 'Tajawal', sans-serif;
+  }
+
+  .min-notice.show { display: flex; }
+
+  /* Formula card */
+  .formula-card {
+    background: rgba(26,58,92,0.04);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .formula-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+
+  .formula-step {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'Tajawal', sans-serif;
+    margin-bottom: 6px;
+    align-items: flex-start;
+  }
+
+  .formula-step .num {
+    width: 20px;
+    height: 20px;
+    background: var(--gold);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Legal note */
+  .legal-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Tajawal', sans-serif;
+    line-height: 1.8;
+    padding: 0 10px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .legal-note a {
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  /* Reset btn */
+  .reset-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 16px auto 0;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .reset-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,148,42,0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(200,148,42,0); }
+  }
+
+  .pulsing { animation: pulse 1.5s ease-in-out 3; }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .card { padding: 20px; }
+    .result-row { padding: 14px 18px; }
+    .result-row.grand-total .result-row-value { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">صندوق الحماية الاجتماعية — سلطنة عُمان</div>
+    <h1>حاسبة <span>معاش الوفاة</span></h1>
+    <div class="ornament">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line"></div>
+    </div>
+    <p>المرسوم السلطاني رقم 52/2023 • قانون الحماية الاجتماعية</p>
+  </div>
+
+  <!-- Formula reference -->
+  <div class="formula-card">
+    <div class="formula-title">آلية الاحتساب</div>
+    <div class="formula-step"><div class="num">١</div><div>تُحدَّد نسبة الاستحقاق حسب عدد المستحقين: مستحق واحد → 60٪ | اثنان → 80٪ | ثلاثة فأكثر → 100٪</div></div>
+    <div class="formula-step"><div class="num">٢</div><div>الإجمالي المبدئي = المعاش الأساسي × النسبة</div></div>
+    <div class="formula-step"><div class="num">٣</div><div>نصيب الفرد = الإجمالي ÷ عدد المستحقين</div></div>
+    <div class="formula-step"><div class="num">٤</div><div>الحد الأدنى لنصيب الفرد: 230 ريال (يُرفع تلقائياً إن قلّ عن ذلك)</div></div>
+    <div class="formula-step"><div class="num">٥</div><div>الإجمالي النهائي = نصيب الفرد (بعد التعديل) × عدد المستحقين</div></div>
+  </div>
+
+  <!-- Input Card -->
+  <div class="card" style="animation-delay:0.1s">
+    <div class="card-title">بيانات الحساب</div>
+
+    <div class="input-group">
+      <label>المعاش الأساسي <span>(الراتب التقاعدي للمتوفى)</span></label>
+      <div class="input-wrap">
+        <input
+          type="number"
+          id="basicPension"
+          placeholder="0.000"
+          min="0"
+          step="0.001"
+          inputmode="decimal"
+        />
+        <span class="input-unit">ر.ع</span>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>عدد المستحقين <span>(الأرملة + الأبناء)</span></label>
+      <div class="stepper">
+        <button type="button" onclick="changeCount(-1)">−</button>
+        <input type="number" id="beneficiaryCount" value="1" min="1" max="20" readonly />
+        <button type="button" onclick="changeCount(1)">+</button>
+      </div>
+      <div class="pct-preview" id="pctPreview">
+        <div class="pct-badge" id="pctBadge">60٪</div>
+        <div class="pct-label" id="pctLabel">نسبة الاستحقاق المطبَّقة — مستحق واحد</div>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">
+      <span class="btn-icon">⟳</span>
+      احسب معاش الوفاة
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="result-header">
+      <div class="result-header-title">نتائج الاحتساب</div>
+      <div class="result-header-sub" id="resultSummary">—</div>
+    </div>
+    <div class="result-body">
+      <div class="result-row">
+        <div class="result-row-label"><div class="icon">📋</div>المعاش الأساسي المدخَل</div>
+        <div class="result-row-value"><span class="unit">ر.ع</span><span id="r_basic">—</span></div>
+      </div>
+      <div class="result-row">
+        <div class="result-row-label"><div class="icon">📊</div>نسبة الاستحقاق المطبَّقة</div>
+        <div class="result-row-value"><span id="r_pct">—</span></div>
+      </div>
+      <div class="result-row">
+        <div class="result-row-label"><div class="icon">🧮</div>إجمالي المعاش المبدئي</div>
+        <div class="result-row-value"><span class="unit">ر.ع</span><span id="r_total_prelim">—</span></div>
+      </div>
+      <div class="result-row">
+        <div class="result-row-label"><div class="icon">👤</div>نصيب الفرد (قبل الحد الأدنى)</div>
+        <div class="result-row-value"><span class="unit">ر.ع</span><span id="r_share_before">—</span></div>
+      </div>
+
+      <!-- Min notice -->
+      <div class="min-notice" id="minNotice">
+        <span>⚠️</span>
+        <span>نصيب الفرد أقل من الحد الأدنى المقرر (230 ر.ع)، تم رفعه تلقائياً وفق المادة (113)</span>
+      </div>
+
+      <div class="result-row highlight">
+        <div class="result-row-label"><div class="icon">✅</div>نصيب الفرد (بعد تطبيق الحد الأدنى)</div>
+        <div class="result-row-value"><span class="unit">ر.ع</span><span id="r_share_after">—</span></div>
+      </div>
+      <div class="result-row grand-total">
+        <div class="result-row-label"><div class="icon">💰</div>إجمالي المبلغ النهائي للأسرة</div>
+        <div class="result-row-value"><span class="unit" style="color:rgba(255,255,255,0.5)">ر.ع</span><span id="r_grand">—</span></div>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetForm()">↺ إعادة الحساب</button>
+  </div>
+
+  <!-- Legal note -->
+  <div class="legal-note" style="margin-top: 32px;">
+    هذه الحاسبة للاسترشاد فقط وتعتمد القواعد الواردة في<br>
+    <strong>المرسوم السلطاني 52/2023</strong> ولائحته التنفيذية ر/7/2023 وتعديلاته<br>
+    للاستفسارات الرسمية: <a href="#">صندوق الحماية الاجتماعية</a> — سلطنة عُمان
+  </div>
+
+</div>
+
+<script>
+  const MIN_SHARE = 230;
+
+  function getPct(count) {
+    if (count === 1) return 0.60;
+    if (count === 2) return 0.80;
+    return 1.00;
+  }
+
+  function getPctLabel(count) {
+    if (count === 1) return ['60٪', 'نسبة الاستحقاق المطبَّقة — مستحق واحد'];
+    if (count === 2) return ['80٪', 'نسبة الاستحقاق المطبَّقة — مستحقان اثنان'];
+    return ['100٪', 'نسبة الاستحقاق المطبَّقة — ثلاثة مستحقين فأكثر'];
+  }
+
+  function changeCount(delta) {
+    const input = document.getElementById('beneficiaryCount');
+    let val = parseInt(input.value) + delta;
+    if (val < 1) val = 1;
+    if (val > 20) val = 20;
+    input.value = val;
+    updatePctPreview();
+  }
+
+  function updatePctPreview() {
+    const count = parseInt(document.getElementById('beneficiaryCount').value);
+    const [badge, label] = getPctLabel(count);
+    document.getElementById('pctBadge').textContent = badge;
+    document.getElementById('pctLabel').textContent = label;
+  }
+
+  function fmt(num) {
+    return num.toLocaleString('ar-OM', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  }
+
+  function calculate() {
+    const basicVal = parseFloat(document.getElementById('basicPension').value);
+    const count = parseInt(document.getElementById('beneficiaryCount').value);
+
+    if (isNaN(basicVal) || basicVal <= 0) {
+      document.getElementById('basicPension').focus();
+      document.getElementById('basicPension').style.borderColor = '#c0392b';
+      setTimeout(() => document.getElementById('basicPension').style.borderColor = '', 1500);
+      return;
+    }
+
+    const pct = getPct(count);
+    const totalPrelim = basicVal * pct;
+    const shareBefore = totalPrelim / count;
+    const shareAfter = Math.max(shareBefore, MIN_SHARE);
+    const grandTotal = shareAfter * count;
+    const minApplied = shareBefore < MIN_SHARE;
+
+    // Update results
+    document.getElementById('r_basic').textContent = fmt(basicVal);
+    document.getElementById('r_pct').textContent = (pct * 100).toFixed(0) + '٪';
+    document.getElementById('r_total_prelim').textContent = fmt(totalPrelim);
+    document.getElementById('r_share_before').textContent = fmt(shareBefore);
+    document.getElementById('r_share_after').textContent = fmt(shareAfter);
+    document.getElementById('r_grand').textContent = fmt(grandTotal);
+
+    // Min notice
+    document.getElementById('minNotice').classList.toggle('show', minApplied);
+
+    // Summary
+    const names = count === 1 ? 'مستحق واحد' : count === 2 ? 'مستحقَين' : count + ' مستحقين';
+    document.getElementById('resultSummary').textContent =
+      `معاش أساسي ${fmt(basicVal)} ر.ع • ${names} • نسبة ${(pct*100).toFixed(0)}٪`;
+
+    // Show
+    const results = document.getElementById('results');
+    results.classList.add('visible');
+    results.classList.add('pulsing');
+    setTimeout(() => results.classList.remove('pulsing'), 4500);
+    results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    document.getElementById('basicPension').value = '';
+    document.getElementById('beneficiaryCount').value = 1;
+    updatePctPreview();
+    document.getElementById('results').classList.remove('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Allow Enter key
+  document.getElementById('basicPension').addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+
+  // Live pct update
+  document.getElementById('beneficiaryCount').addEventListener('change', updatePctPreview);
+</script>
+</body>
+</html>
